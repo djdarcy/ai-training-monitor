@@ -64,7 +64,7 @@ python -m ai_training_monitor --log /path/to/log.txt --framework kohya
 
 ## Current Status
 
-### ✅ What Works
+### What Works
 - **Individual Graphs View**: Three separate graphs for Loss, Learning Rate, and Speed with proper scaling
 - **Threshold Overlays**: Dynamic colored zones and threshold lines that adapt to your hardware
 - **Interactive Control Panel**: Adjust thresholds, toggle monitoring features, pause/resume
@@ -72,13 +72,13 @@ python -m ai_training_monitor --log /path/to/log.txt --framework kohya
 - **Parser Support**: Fully functional Ostris AI Toolkit parser
 - **Export Functions**: Save data as CSV for further analysis
 
-### 🚧 Known Issues
+### Known Issues
 - **OmniGraph Axis Scaling**: The unified "Omni" view doesn't properly update Y-axis numeric values when switching primary metrics (shows 0-1 instead of actual values)
 - **Time Verification**: "Space invader blip" visualization not yet implemented
 - **Historical Data Loading**: Toggle for loading past vs current-only data not yet available
 - **Limited Parser Support**: Currently only Ostris format is fully implemented
 
-### 🗺️ Roadmap
+### Roadmap
 - Fix OmniGraph axis scaling issue
 - Add historical data loading with toggle
 - Implement time verification visualization
