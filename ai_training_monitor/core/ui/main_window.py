@@ -167,6 +167,15 @@ class TrainingMonitorWindow(QMainWindow):
         self.graph_widget = MultiGraphWidget()
         self.graph_tabs.addTab(self.graph_widget, "Individual")
 
+        # Initialize zones and default thresholds for individual graphs
+        self.graph_widget.set_zones('loss')
+        self.graph_widget.set_zones('speed')
+        self.graph_widget.update_all_thresholds({
+            'loss': 0.05,
+            'lr': 1e-4,
+            'speed': 5.0
+        })
+
         # Omni view tab
         self.omni_graph = OmniGraphPanel()
         self.graph_tabs.addTab(self.omni_graph, "Omni")
@@ -520,6 +529,10 @@ class TrainingMonitorWindow(QMainWindow):
         """Handle threshold change from status panel"""
         # Update Omni graph thresholds
         self.omni_graph.graph.set_threshold(metric, value)
+
+        # Update Individual graph thresholds
+        self.graph_widget.update_all_thresholds({metric: value})
+
         self.status_bar.showMessage(f"Updated {metric} threshold to {value}")
 
     def on_monitoring_toggled(self, feature: str, enabled: bool):

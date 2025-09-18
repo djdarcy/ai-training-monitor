@@ -103,6 +103,54 @@ class OmniGraph(pg.PlotWidget):
         # Legend
         self.addLegend()
 
+        # Zone storage
+        self.zones = {}
+
+    def _add_loss_zones(self, threshold: float):
+        """Add colored zones based on loss threshold"""
+        # Clear existing zones
+        for zone_name in ['optimal', 'acceptable', 'warning']:
+            if zone_name in self.zones:
+                self.removeItem(self.zones[zone_name])
+                del self.zones[zone_name]
+
+        # Create zones relative to threshold
+        # Optimal: 0 to 40% of threshold
+        optimal_zone = pg.LinearRegionItem(
+            values=(0, threshold * 0.4),
+            orientation='horizontal',
+            movable=False,
+            pen=pg.mkPen(None)
+        )
+        optimal_zone.setBrush(pg.mkBrush(0, 255, 0, 20))  # Green with transparency
+        optimal_zone.setZValue(-10)  # Put behind data
+        self.addItem(optimal_zone)
+        self.zones['optimal'] = optimal_zone
+
+        # Acceptable: 40% to 100% of threshold
+        acceptable_zone = pg.LinearRegionItem(
+            values=(threshold * 0.4, threshold),
+            orientation='horizontal',
+            movable=False,
+            pen=pg.mkPen(None)
+        )
+        acceptable_zone.setBrush(pg.mkBrush(255, 215, 0, 20))  # Gold with transparency
+        acceptable_zone.setZValue(-10)
+        self.addItem(acceptable_zone)
+        self.zones['acceptable'] = acceptable_zone
+
+        # Warning: threshold to 2x threshold
+        warning_zone = pg.LinearRegionItem(
+            values=(threshold, threshold * 2),
+            orientation='horizontal',
+            movable=False,
+            pen=pg.mkPen(None)
+        )
+        warning_zone.setBrush(pg.mkBrush(255, 165, 0, 20))  # Orange with transparency
+        warning_zone.setZValue(-10)
+        self.addItem(warning_zone)
+        self.zones['warning'] = warning_zone
+
     def _initialize_plot_items(self):
         """Create plot items for each metric"""
         for metric_key, config in self.metrics_config.items():
@@ -167,16 +215,18 @@ class OmniGraph(pg.PlotWidget):
             self.metrics_config[metric]['threshold'] = value
 
             if metric not in self.threshold_items:
-                # Create new threshold line
+                # Create new threshold line with label
                 threshold_pen = pg.mkPen(
                     color=self.metrics_config[metric]['color'],
-                    width=1,
+                    width=1.5,
                     style=Qt.PenStyle.DashDotLine
                 )
                 threshold_line = pg.InfiniteLine(
                     angle=0,
                     movable=False,
-                    pen=threshold_pen
+                    pen=threshold_pen,
+                    label=f'{metric.upper()} Threshold',
+                    labelOpts={'position': 0.95, 'color': self.metrics_config[metric]['color']}
                 )
 
                 if self.metrics_config[metric]['axis'] == 'primary':
@@ -187,6 +237,10 @@ class OmniGraph(pg.PlotWidget):
                 self.threshold_items[metric] = threshold_line
 
             self.threshold_items[metric].setValue(value)
+
+            # Add zones for loss metric
+            if metric == 'loss' and self.metrics_config[metric]['axis'] == 'primary':
+                self._add_loss_zones(value)
 
     def update_data(self, metrics: Dict):
         """Update graph with new metrics data"""
