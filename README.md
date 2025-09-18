@@ -1,28 +1,51 @@
-# ai-training-monitor
+# AI Training Monitor
 
-$badges
+[![Python](https://img.shields.io/badge/python-%3E%3D3.8-blue)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20|%20Linux%20|%20macOS-lightgrey)](https://github.com)
 
-Universal AI training monitor with real-time graphs like Process Explorer
+Universal AI training monitor with real-time graphs like Process Explorer - monitor any AI/ML training framework with smooth, professional visualizations.
 
 ## Overview
 
+AI Training Monitor is a native desktop application that provides real-time visualization of AI/ML training metrics. Similar to Windows Process Explorer but designed specifically for monitoring training progress, it offers smooth 60 FPS graphs, automatic pattern detection, and a plugin architecture that supports any training framework.
+
 ## Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- 🎯 **Universal Plugin Architecture** - Works with any training framework through extensible parsers
+- 📊 **Real-time Smooth Graphs** - 60 FPS visualization using PyQtGraph (not terminal-based)
+- 🔍 **Intelligent Analysis** - Automatic detection of overfitting, plateaus, and divergence
+- 🎨 **Professional Native UI** - Desktop application with Process Explorer-style interface
+- 📈 **Multi-Metric Tracking** - Monitor loss, learning rate, speed, memory usage simultaneously
+- 🔌 **Framework Support** - Ostris, Kohya_ss, HuggingFace, PyTorch Lightning, and more
+- 💾 **Export Options** - Save graphs as images, export data as CSV
+- 🖥️ **Cross-Platform** - Works on Windows, Linux, and macOS
 
 ## Installation
 
 ```bash
-# Installation instructions here
+# Clone the repository
+git clone https://github.com/yourusername/ai-training-monitor.git
+cd ai-training-monitor
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Or install in development mode
+pip install -e .
 ```
 
 ## Usage
 
 ```bash
-# Usage examples here
-```
+# Auto-detect framework and monitor
+python -m ai_training_monitor /path/to/training/output
+
+# Specify framework explicitly
+python -m ai_training_monitor --framework ostris /path/to/output/MacyDek2
+
+# Monitor specific log file
+python -m ai_training_monitor --log /path/to/log.txt --framework kohya
 
 ## Development
 
