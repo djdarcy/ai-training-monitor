@@ -270,6 +270,9 @@ class OmniGraph(pg.PlotWidget):
         """Update all active plot items"""
         steps = self.data['step']
 
+        # Track if we have secondary axis data
+        has_secondary_data = False
+
         for metric_key, plot_item in self.plot_items.items():
             if not self.metrics_config[metric_key]['enabled']:
                 continue
@@ -289,9 +292,14 @@ class OmniGraph(pg.PlotWidget):
             # Apply normalization if needed
             if self.metrics_config[metric_key]['normalize'] and self.metrics_config[metric_key]['axis'] == 'secondary':
                 valid_values = self._normalize_values(valid_values)
+                has_secondary_data = True
 
             # Update plot
             plot_item.setData(valid_steps, valid_values)
+
+        # Update secondary axis range if we have data
+        if has_secondary_data:
+            self.secondary_axis.setYRange(0, 1, padding=0.1)
 
         # Update time verification blip if enabled
         if self.metrics_config['time_blip']['enabled']:
@@ -352,7 +360,36 @@ class OmniGraph(pg.PlotWidget):
         if metric not in self.metrics_config:
             return
 
-        # Swap primary metric
+        # Don't do anything if it's already the primary
+        if self.metrics_config[metric]['axis'] == 'primary':
+            return
+
+        # Store current data before clearing
+        stored_data = dict(self.data)
+
+        # Clear existing plot items properly
+        for plot_item in list(self.plot_items.values()):
+            if isinstance(plot_item, pg.PlotDataItem):
+                self.removeItem(plot_item)
+            elif isinstance(plot_item, pg.PlotCurveItem):
+                self.secondary_axis.removeItem(plot_item)
+            elif isinstance(plot_item, pg.FillBetweenItem):
+                self.removeItem(plot_item)
+
+        # Clear threshold items
+        for threshold_item in list(self.threshold_items.values()):
+            try:
+                self.removeItem(threshold_item)
+            except:
+                try:
+                    self.secondary_axis.removeItem(threshold_item)
+                except:
+                    pass
+
+        self.plot_items.clear()
+        self.threshold_items.clear()
+
+        # Update metric configurations
         for key, config in self.metrics_config.items():
             if config['axis'] == 'primary':
                 config['axis'] = 'secondary'
@@ -361,20 +398,23 @@ class OmniGraph(pg.PlotWidget):
         self.metrics_config[metric]['axis'] = 'primary'
         self.metrics_config[metric]['normalize'] = False
 
-        # Update axis label
+        # Update axis label and scaling
         self.primary_axis.setLabel(self.metrics_config[metric]['name'],
                                     color=self.metrics_config[metric]['color'])
 
+        # Reset axis ranges to auto
+        self.enableAutoRange()
+        self.secondary_axis.enableAutoRange()
+
         # Re-initialize plot items with new axis configuration
-        self.clear()
-        for item in self.plot_items.values():
-            if hasattr(item, 'scene'):
-                item.scene().removeItem(item)
-        self.plot_items = {}
         self._initialize_plot_items()
 
-        # Refresh data
-        self._update_plots()
+        # Restore data
+        self.data = stored_data
+
+        # Refresh plots with existing data
+        if any(self.data[key] for key in self.data):
+            self._update_plots()
 
 
 class OmniGraphPanel(QWidget):
