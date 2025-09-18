@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 pytest pytest-cov
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: true
+
+    - name: Test imports
+      run: |
+        python -c "from ai_training_monitor.core.monitor import TrainingMonitor; print('Core import OK')"
+        python -c "from ai_training_monitor.parsers.ostris import OstrisParser; print('Parser import OK')"
+        python -c "from ai_training_monitor.version import __version__; print(f'Version: {__version__}')"
+
+    - name: Test CLI
+      run: |
+        python -m ai_training_monitor --version
+        python -m ai_training_monitor --help
+
+    - name: Run tests
+      run: |
+        # Run any test files if they exist
+        if [ -d "tests" ]; then
+          python -m pytest tests/ -v
+        else
+          echo "No tests directory found, skipping pytest"
+        fi
+      shell: bash
+      continue-on-error: true
+
+    - name: Test OmniGraph axis (if exists)
+      run: |
+        if [ -f "tests/one-offs/test_omni_axis.py" ]; then
+          python tests/one-offs/test_omni_axis.py
+        fi
+      shell: bash
+      continue-on-error: true
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build wheel setuptools
+
+    - name: Build package
+      run: |
+        python -m build
+
+    - name: Check package
+      run: |
+        pip install twine
+        twine check dist/*
+      continue-on-error: true
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-packages
+        path: dist/

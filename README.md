@@ -11,7 +11,9 @@ Universal AI training monitor with real-time graphs like Process Explorer - moni
 
 ## Overview
 
-AI Training Monitor is a native desktop application that provides real-time visualization of AI/ML training metrics. Similar to [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer) but designed specifically for monitoring training progress, it offers smooth 60 FPS graphs, automatic pattern detection, and a plugin architecture that supports any training framework.
+AI Training Monitor is a native desktop application that provides real-time visualization of AI/ML training metrics. Similar to [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer) but designed specifically for monitoring training progress, it offers smooth graphs, automatic pattern detection, and a plugin architecture that supports any training framework.
+
+![interface](.\docs\interface.png)
 
 ## Features
 
@@ -95,7 +97,7 @@ Like the project?
 
 ## License
 
-This project is licensed under the terms specified in the LICENSE file.
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
 ## Acknowledgements
 
