@@ -1,8 +1,23 @@
-# Project dependencies
-# Add your dependencies here
+# Core GUI and graphing dependencies
+PyQt6>=6.5.0
+pyqtgraph>=0.13.3
+
+# Data processing
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Configuration and utilities
+PyYAML>=6.0
+watchdog>=3.0.0  # File monitoring
+python-dateutil>=2.8.2
+
+# Optional but recommended for exports
+matplotlib>=3.7.0  # For additional export options
+Pillow>=10.0.0  # For screenshots
 
 # Development dependencies
 pytest>=7.0.0
+pytest-qt>=4.2.0
 black>=23.0.0
 flake8>=6.0.0
 mypy>=1.0.0

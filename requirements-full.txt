@@ -1,0 +1,24 @@
+# Core GUI and graphing
+PyQt6>=6.5.0
+pyqtgraph>=0.13.3
+
+# Data processing
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Configuration
+PyYAML>=6.0
+
+# Utilities
+watchdog>=3.0.0  # File monitoring
+python-dateutil>=2.8.2
+
+# Optional but recommended
+matplotlib>=3.7.0  # For export options
+Pillow>=10.0.0  # For screenshots
+
+# Development dependencies (optional)
+# pytest>=7.4.0
+# pytest-qt>=4.2.0
+# black>=23.0.0
+# flake8>=6.0.0
