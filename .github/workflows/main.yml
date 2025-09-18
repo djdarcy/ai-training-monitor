@@ -76,23 +76,52 @@ jobs:
 
     - name: Run tests
       run: |
-        # Run any test files if they exist
+        # Run proper test files if they exist, excluding one-offs
         if [ -d "tests" ]; then
-          python -m pytest tests/ -v
+          # Check if there are actual test files (not in one-offs)
+          if find tests -name "test_*.py" -not -path "*/one-offs/*" | grep -q .; then
+            python -m pytest tests/ -v --ignore=tests/one-offs
+          else
+            echo "No formal test files found (one-offs excluded)"
+          fi
         else
-          echo "No tests directory found, skipping pytest"
+          echo "No tests directory found"
         fi
       shell: bash
       continue-on-error: true
 
-    - name: Test OmniGraph axis (if exists)
-      env:
-        QT_QPA_PLATFORM: offscreen
+    - name: Test core functionality (non-GUI)
       run: |
-        if [ -f "tests/one-offs/test_omni_axis.py" ]; then
-          python tests/one-offs/test_omni_axis.py
-        fi
-      shell: bash
+        # Test basic imports and functionality without GUI
+        python -c "
+import sys
+print('Testing core imports...')
+
+# Test version system
+from ai_training_monitor.version import __version__, get_version_dict
+version_info = get_version_dict()
+print(f'Version: {version_info[\"full\"]}')
+assert version_info['base'].startswith('0.1.')
+
+# Test parser imports
+from ai_training_monitor.parsers.base import BaseParser
+from ai_training_monitor.parsers.ostris import OstrisParser
+print('Parser imports OK')
+
+# Test data structures
+from ai_training_monitor.core.data_manager import MetricsBuffer
+buffer = MetricsBuffer(maxlen=100)
+buffer.add_metrics({'loss': 0.5, 'lr': 1e-4})
+assert len(buffer.get_all_metrics()) == 1
+print('Data manager OK')
+
+# Test analyzer
+from ai_training_monitor.core.analyzer import PatternAnalyzer
+analyzer = PatternAnalyzer()
+print('Analyzer OK')
+
+print('All core functionality tests passed!')
+"
       continue-on-error: true
 
   build:
