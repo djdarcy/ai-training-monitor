@@ -294,12 +294,13 @@ class MultiGraphWidget(QWidget):
         if graph_name in self.graphs:
             self.graphs[graph_name].add_threshold(threshold_name, value, color, label=label)
 
-    def set_zones(self, graph_name: str) -> None:
+    def set_zones(self, graph_name: str, threshold_value: float = None) -> None:
         """
-        Set predefined zones for specific graphs
+        Set dynamic zones for specific graphs based on thresholds
 
         Args:
             graph_name: Name of the graph to set zones for
+            threshold_value: Optional threshold value to base zones on
         """
         if graph_name not in self.graphs:
             return
@@ -307,26 +308,38 @@ class MultiGraphWidget(QWidget):
         graph = self.graphs[graph_name]
 
         if graph_name == 'loss':
-            # Define zones for loss
-            graph.add_zone('optimal', 0, 0.02, '#00FF00', 20, 'Optimal')
-            graph.add_zone('acceptable', 0.02, 0.05, '#FFD700', 20, 'Acceptable')
-            graph.add_zone('warning', 0.05, 0.1, '#FFA500', 20, 'Warning')
-            # Critical zone will be anything above 0.1 (graph background)
+            # Define zones for loss based on threshold
+            base = threshold_value if threshold_value else 0.05
+            # Optimal: 0 to 40% of threshold
+            graph.add_zone('optimal', 0, base * 0.4, '#00FF00', 20, 'Optimal')
+            # Acceptable: 40% to 100% of threshold
+            graph.add_zone('acceptable', base * 0.4, base, '#FFD700', 20, 'Acceptable')
+            # Warning: 100% to 200% of threshold
+            graph.add_zone('warning', base, base * 2, '#FFA500', 20, 'Warning')
+            # Critical zone will be anything above 200% of threshold
 
         elif graph_name == 'speed':
-            # Define zones for training speed (lower is better)
-            graph.add_zone('fast', 0, 1.0, '#00FF00', 20, 'Fast')
-            graph.add_zone('normal', 1.0, 3.0, '#FFD700', 20, 'Normal')
-            graph.add_zone('slow', 3.0, 5.0, '#FFA500', 20, 'Slow')
-            # Very slow will be anything above 5.0
+            # Define zones for training speed based on threshold (lower is better)
+            base = threshold_value if threshold_value else 5.0
+            # Fast: 0 to 20% of threshold
+            graph.add_zone('fast', 0, base * 0.2, '#00FF00', 20, 'Fast')
+            # Normal: 20% to 60% of threshold
+            graph.add_zone('normal', base * 0.2, base * 0.6, '#FFD700', 20, 'Normal')
+            # Slow: 60% to 100% of threshold
+            graph.add_zone('slow', base * 0.6, base, '#FFA500', 20, 'Slow')
+            # Very slow will be anything above the threshold
 
         elif graph_name == 'lr':
-            # Learning rate typically doesn't need zones, just threshold lines
-            pass
+            # Learning rate zones (optional, based on threshold being minimum acceptable)
+            if threshold_value:
+                # Too low: below threshold
+                graph.add_zone('too_low', 0, threshold_value, '#FF6B6B', 15, 'Too Low')
+                # Good range: threshold to 10x threshold
+                graph.add_zone('good', threshold_value, threshold_value * 10, '#00FF00', 15, 'Good')
 
     def update_all_thresholds(self, thresholds: Dict[str, float]) -> None:
         """
-        Update thresholds for all graphs based on control panel values
+        Update thresholds and zones for all graphs based on control panel values
 
         Args:
             thresholds: Dictionary mapping metric names to threshold values
@@ -334,14 +347,20 @@ class MultiGraphWidget(QWidget):
         if 'loss' in thresholds and 'loss' in self.graphs:
             self.graphs['loss'].add_threshold('critical', thresholds['loss'],
                                              '#FF0000', label='Critical')
+            # Update zones dynamically based on new threshold
+            self.set_zones('loss', thresholds['loss'])
 
         if 'lr' in thresholds and 'lr' in self.graphs:
             self.graphs['lr'].add_threshold('minimum', thresholds['lr'],
                                            '#FFA500', label='Min LR')
+            # Update zones if needed
+            self.set_zones('lr', thresholds['lr'])
 
         if 'speed' in thresholds and 'speed' in self.graphs:
             self.graphs['speed'].add_threshold('slow', thresholds['speed'],
                                               '#FF0000', label='Too Slow')
+            # Update zones dynamically based on new threshold
+            self.set_zones('speed', thresholds['speed'])
 
     def clear_all(self) -> None:
         """Clear all graphs"""

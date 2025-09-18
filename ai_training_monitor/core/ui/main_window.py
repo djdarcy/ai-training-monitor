@@ -168,13 +168,15 @@ class TrainingMonitorWindow(QMainWindow):
         self.graph_tabs.addTab(self.graph_widget, "Individual")
 
         # Initialize zones and default thresholds for individual graphs
-        self.graph_widget.set_zones('loss')
-        self.graph_widget.set_zones('speed')
-        self.graph_widget.update_all_thresholds({
+        default_thresholds = {
             'loss': 0.05,
             'lr': 1e-4,
             'speed': 5.0
-        })
+        }
+        # Set zones with initial threshold values
+        self.graph_widget.set_zones('loss', default_thresholds['loss'])
+        self.graph_widget.set_zones('speed', default_thresholds['speed'])
+        self.graph_widget.update_all_thresholds(default_thresholds)
 
         # Omni view tab
         self.omni_graph = OmniGraphPanel()
