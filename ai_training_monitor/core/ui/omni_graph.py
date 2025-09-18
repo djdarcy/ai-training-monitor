@@ -200,6 +200,23 @@ class OmniGraph(pg.PlotWidget):
         self.secondary_axis.setGeometry(self.plotItem.vb.sceneBoundingRect())
         self.secondary_axis.linkedViewChanged(self.plotItem.vb, self.secondary_axis.XAxis)
 
+    def _refresh_axes(self):
+        """Force both axes to refresh their display"""
+        # Clear the axis cache and force complete recalculation
+        left_axis = self.getAxis('left')
+
+        # Force the axis to recalculate its range and ticks
+        if hasattr(left_axis, '_tickLevels'):
+            left_axis._tickLevels = None
+        if hasattr(left_axis, '_tickSpacing'):
+            left_axis._tickSpacing = None
+
+        # Update the view to force redraw
+        self.plotItem.updateGrid()
+        self.plotItem.vb.update()
+        left_axis.update()
+        self.getAxis('right').update()
+
     def set_metric_enabled(self, metric: str, enabled: bool):
         """Enable or disable a specific metric"""
         if metric in self.metrics_config:
@@ -270,8 +287,9 @@ class OmniGraph(pg.PlotWidget):
         """Update all active plot items"""
         steps = self.data['step']
 
-        # Track if we have secondary axis data
+        # Track if we have secondary axis data and primary data range
         has_secondary_data = False
+        primary_min, primary_max = None, None
 
         for metric_key, plot_item in self.plot_items.items():
             if not self.metrics_config[metric_key]['enabled']:
@@ -289,13 +307,32 @@ class OmniGraph(pg.PlotWidget):
             valid_steps = [steps[i] for i in valid_indices]
             valid_values = [metric_data[i] for i in valid_indices]
 
-            # Apply normalization if needed
-            if self.metrics_config[metric_key]['normalize'] and self.metrics_config[metric_key]['axis'] == 'secondary':
+            # Store original values for primary axis tracking
+            original_values = list(valid_values)
+
+            # Apply normalization ONLY for secondary axis metrics
+            if self.metrics_config[metric_key]['axis'] == 'secondary' and self.metrics_config[metric_key]['normalize']:
                 valid_values = self._normalize_values(valid_values)
                 has_secondary_data = True
+                print(f"[DEBUG] Normalized {metric_key} for secondary axis")
+            elif self.metrics_config[metric_key]['axis'] == 'primary':
+                # Track primary axis data range using ORIGINAL values
+                if original_values:
+                    primary_min = min(original_values) if primary_min is None else min(primary_min, min(original_values))
+                    primary_max = max(original_values) if primary_max is None else max(primary_max, max(original_values))
+                    print(f"[DEBUG] Primary metric {metric_key} range: {min(original_values):.6f} to {max(original_values):.6f}")
 
             # Update plot
             plot_item.setData(valid_steps, valid_values)
+
+        # Update primary axis range if we have primary data
+        if primary_min is not None and primary_max is not None:
+            padding = (primary_max - primary_min) * 0.1 if primary_max != primary_min else 0.1
+
+            print(f"[DEBUG] Updated primary Y range: {primary_min - padding:.6f} to {primary_max + padding:.6f}")
+
+            # Force the view to update with the new range
+            self.plotItem.vb.setRange(yRange=(primary_min - padding, primary_max + padding), padding=0)
 
         # Update secondary axis range if we have data
         if has_secondary_data:
@@ -402,19 +439,43 @@ class OmniGraph(pg.PlotWidget):
         self.primary_axis.setLabel(self.metrics_config[metric]['name'],
                                     color=self.metrics_config[metric]['color'])
 
-        # Reset axis ranges to auto
-        self.enableAutoRange()
-        self.secondary_axis.enableAutoRange()
-
         # Re-initialize plot items with new axis configuration
         self._initialize_plot_items()
 
         # Restore data
         self.data = stored_data
 
+        # Force update the primary axis range based on the new primary metric data
+        if metric in self.data and self.data[metric]:
+            valid_data = [v for v in self.data[metric] if v is not None]
+            if valid_data:
+                data_min = min(valid_data)
+                data_max = max(valid_data)
+                padding = (data_max - data_min) * 0.1 if data_max != data_min else 0.1
+
+                print(f"[DEBUG] Set primary Y range for {metric}: {data_min - padding:.6f} to {data_max + padding:.6f}")
+
+                # Clear auto range and set manual range
+                self.plotItem.vb.enableAutoRange(axis=1, enable=False)  # Disable Y auto range
+                self.plotItem.vb.setRange(yRange=(data_min - padding, data_max + padding), padding=0, update=True)
+
+                # Force the left axis to recognize the new range
+                left_axis = self.getAxis('left')
+                left_axis.linkToView(self.plotItem.vb)  # Re-link to ensure connection
+                left_axis.setRange(data_min - padding, data_max + padding)
+        else:
+            # Reset to auto range if no data
+            self.enableAutoRange(y=True)
+
+        # Set secondary axis to normalized range
+        self.secondary_axis.setYRange(0, 1, padding=0.1)
+
         # Refresh plots with existing data
         if any(self.data[key] for key in self.data):
             self._update_plots()
+
+        # Force axes to refresh their display
+        self._refresh_axes()
 
 
 class OmniGraphPanel(QWidget):
