@@ -8,6 +8,7 @@ from pathlib import Path
 from PyQt6.QtWidgets import QApplication
 
 from .core.ui.main_window import TrainingMonitorWindow
+from .version import __version__, get_version_dict
 
 
 def setup_logging(verbose: bool = False):
@@ -71,7 +72,24 @@ Examples:
         help='Enable verbose logging'
     )
 
+    parser.add_argument(
+        '--version', '-V',
+        action='store_true',
+        help='Show version information and exit'
+    )
+
     args = parser.parse_args()
+
+    # Handle version display
+    if args.version:
+        version_info = get_version_dict()
+        print(f"AI Training Monitor {version_info['base']}")
+        print(f"Version: {__version__}")
+        print(f"Branch: {version_info['branch']}")
+        print(f"Build: {version_info['build']}")
+        print(f"Date: {version_info['date']}")
+        print(f"Commit: {version_info['commit']}")
+        sys.exit(0)
 
     # Set up logging
     setup_logging(args.verbose)

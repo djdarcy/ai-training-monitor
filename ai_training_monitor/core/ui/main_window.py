@@ -20,6 +20,7 @@ from .status_panel import StatusPanel
 from .interactive_status_panel import InteractiveStatusPanel
 from ..monitor import TrainingMonitor
 from ...parsers.ostris import OstrisParser
+from ...version import __version__, get_base_version
 
 
 class MonitorThread(QThread):
@@ -72,7 +73,7 @@ class TrainingMonitorWindow(QMainWindow):
 
     def _setup_ui(self):
         """Set up the user interface"""
-        self.setWindowTitle("AI Training Monitor")
+        self.setWindowTitle(f"AI Training Monitor - v{get_base_version()}")
         self.setGeometry(100, 100, 1400, 900)
 
         # Set dark theme
@@ -202,6 +203,12 @@ class TrainingMonitorWindow(QMainWindow):
         # Status bar
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
+
+        # Add permanent version widget to status bar
+        version_label = QLabel(f"Version: {__version__}")
+        version_label.setStyleSheet("color: #888; padding: 0 10px;")
+        self.status_bar.addPermanentWidget(version_label)
+
         self.status_bar.showMessage("Ready")
 
     def _create_control_panel(self) -> QWidget:
