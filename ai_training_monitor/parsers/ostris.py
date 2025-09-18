@@ -210,7 +210,7 @@ class OstrisParser(BaseParser):
 
         # Try to extract model info from log path
         if self.log_path:
-            # Path might be like: output/MacyDek2/log.txt
+            # Path might be like: output/character/log.txt
             parts = self.log_path.parts
             if 'output' in parts:
                 idx = parts.index('output')
