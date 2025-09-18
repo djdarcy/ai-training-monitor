@@ -30,7 +30,6 @@ jobs:
           libgl1 \
           libegl1 \
           libxkbcommon0 \
-          libxcb-cursor0 \
           libxcb-icccm4 \
           libxcb-image0 \
           libxcb-keysyms1 \
@@ -38,19 +37,7 @@ jobs:
           libxcb-render-util0 \
           libxcb-shape0 \
           libxcb-xinerama0 \
-          libxcb-xfixes0 \
-          x11-utils \
-          libopengl0 \
-          libegl1-mesa \
-          libxcb-xkb1 \
-          libxkbcommon-x11-0
-
-    - name: Set up display (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        export DISPLAY=:99
-        sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        sleep 3
+          libdbus-1-3
 
     - name: Cache dependencies
       uses: actions/cache@v4
@@ -82,14 +69,10 @@ jobs:
 
     - name: Test CLI
       env:
-        DISPLAY: ':99'
+        QT_QPA_PLATFORM: offscreen
       run: |
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
-          export DISPLAY=:99
-        fi
         python -m ai_training_monitor --version
         python -m ai_training_monitor --help
-      shell: bash
 
     - name: Run tests
       run: |
@@ -104,11 +87,8 @@ jobs:
 
     - name: Test OmniGraph axis (if exists)
       env:
-        DISPLAY: ':99'
+        QT_QPA_PLATFORM: offscreen
       run: |
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
-          export DISPLAY=:99
-        fi
         if [ -f "tests/one-offs/test_omni_axis.py" ]; then
           python tests/one-offs/test_omni_axis.py
         fi
