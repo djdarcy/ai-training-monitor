@@ -36,10 +36,17 @@ class MetricGraph(pg.PlotWidget):
         self.title = title
         self.color = color
 
-        # Configure plot
-        self.setTitle(title, color='w', size='12pt')
-        self.setLabel('left', y_label, color='w')
-        self.setLabel('bottom', x_label, color='w')
+        # Configure plot with visible labels
+        self.setTitle(title, color='#e0e0e0', size='12pt')
+        self.setLabel('left', y_label, color='#e0e0e0', units='')
+        self.setLabel('bottom', x_label, color='#e0e0e0', units='')
+
+        # Style the axes
+        axis_color = '#e0e0e0'
+        for axis in ['left', 'bottom', 'right', 'top']:
+            self.getAxis(axis).setPen(pg.mkPen(color=axis_color, width=1))
+            self.getAxis(axis).setTextPen(pg.mkPen(color=axis_color))
+
         self.showGrid(x=True, y=True, alpha=0.3)
         self.setBackground('#1e1e1e')
 
@@ -226,7 +233,7 @@ class MultiGraphWidget(QWidget):
             title="Loss",
             y_label="Loss",
             x_label="Step",
-            color="#00FF00"
+            color="#4ade80"  # Bright green
         )
         self.graphs['loss'].setMinimumHeight(250)
         self.layout.addWidget(self.graphs['loss'], stretch=2)
@@ -240,7 +247,7 @@ class MultiGraphWidget(QWidget):
             title="Learning Rate",
             y_label="LR",
             x_label="Step",
-            color="#FFD700"
+            color="#fbbf24"  # Bright amber/yellow
         )
         self.graphs['lr'].enable_log_scale(True)
         h_layout.addWidget(self.graphs['lr'])
@@ -250,7 +257,7 @@ class MultiGraphWidget(QWidget):
             title="Training Speed",
             y_label="s/it",
             x_label="Step",
-            color="#FF69B4"
+            color="#60a5fa"  # Bright blue
         )
         h_layout.addWidget(self.graphs['speed'])
 
