@@ -51,17 +51,6 @@ python -m ai_training_monitor --framework ostris /path/to/output/character
 
 # Monitor specific log file
 python -m ai_training_monitor --log /path/to/log.txt --framework kohya
-
-## Development
-
-### Prerequisites
-
-- List prerequisites here
-
-### Setup
-
-```bash
-# Setup instructions here
 ```
 
 ## Current Status
@@ -81,7 +70,7 @@ python -m ai_training_monitor --log /path/to/log.txt --framework kohya
 - **Limited Parser Support**: Currently only Ostris format is fully implemented
 
 ### Roadmap
-- Fix OmniGraph axis scaling issue
+- Fix OmniGraph axis scaling issue (mostly working)
 - Add historical data loading with toggle
 - Implement time verification visualization
 - Add support for Kohya_ss, HuggingFace Trainer, PyTorch Lightning
@@ -97,7 +86,9 @@ Like the project?
 
 ## License
 
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+AI Training Monitor, Copyright (C) 2025-2026 Dustin Darcy
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgements
 
